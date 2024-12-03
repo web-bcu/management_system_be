@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>auth</artifactId>
+	<artifactId>users-auth</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>auth</name>
 	<description>Authentication Service</description>

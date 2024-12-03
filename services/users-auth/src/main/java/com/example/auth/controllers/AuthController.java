@@ -14,4 +14,6 @@ public class AuthController {
     public String login() {
         return "Login new user here";
     }
+
+//    @GetMapping
 }
