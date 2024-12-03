@@ -1,0 +1,54 @@
+package com.csbu.finance.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
+
+@Entity
+@Table(name = "Budgets")
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class Budget {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    private Integer id;
+
+    //    private Account account; haven't had yet
+
+    @Column(name = "period_start")
+    private LocalDate periodStart;
+
+    @Column(name = "period_end")
+    private LocalDate periodEnd;
+
+    @Column(name = "approved_amount")
+    private Integer approvedAmount;
+
+    @Column(name = "remaining_amount")
+    private Integer remainingAmount;
+
+    @Column(name = "currency")
+    private String currency;
+
+    @Column(name = "created_at")
+    private LocalDate createdAt;
+
+    @OneToMany(mappedBy = "budget")
+    private List<Transaction> transactions;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = LocalDate.now();
+        }
+    }
+}
