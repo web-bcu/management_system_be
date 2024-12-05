@@ -12,6 +12,15 @@
         <module name="discovery" />
         <module name="finance" />
       </profile>
+      <profile name="Annotation profile for projects" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
+        <module name="projects" />
+      </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
@@ -19,6 +28,7 @@
       <module name="config-server" options="-parameters" />
       <module name="discovery" options="-parameters" />
       <module name="finance" options="-parameters" />
+      <module name="projects" options="-parameters" />
       <module name="users-auth" options="-parameters" />
     </option>
   </component>

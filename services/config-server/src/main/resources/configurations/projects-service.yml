@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/finance
+    url: jdbc:postgresql://localhost:5432/projects
     username: ankhangnumber1
     password: ankhangnumber1
     driver-class-name: org.postgresql.Driver
@@ -18,4 +18,4 @@ spring:
     password: ${spring.datasource.password}
 
 server:
-  port: 8050
+  port: 8070
