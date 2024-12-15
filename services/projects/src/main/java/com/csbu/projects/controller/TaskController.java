@@ -24,7 +24,7 @@ public class TaskController {
 //    public String testTask() {
 //        return "Task đây nha chú em - Port 8070 - Good luck";
 //    }
-    @PostMapping("/task")
+    @PostMapping
     public ResponseEntity<String> createTask(@RequestBody @Valid AddTaskRequest request)
     {
         Task task = new Task();
@@ -37,20 +37,20 @@ public class TaskController {
         return  ResponseEntity.status(HttpStatus.CREATED).body("Task has been created!");
     }
 
-    @PutMapping("/task/{id}/status")
+    @PutMapping("/{id}/status")
     public ResponseEntity<String> updateStatusById(@PathVariable(name = "id") Integer id){
         taskService.updateTaskStatus(id);
         return ResponseEntity.status(HttpStatus.OK)
                 .body("Task's status has been updated");
     }
 
-    @DeleteMapping("/task/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteTask(@PathVariable(name="id") Integer id){
         taskService.deleteTaskById(id);
         return  ResponseEntity.status(HttpStatus.OK).body("Task has been deleted!");
     }
 
-    @GetMapping("/task/{employee_id}")
+    @GetMapping("/{employee_id}")
     public ResponseEntity<List<TaskDto>> getTaskByEmployeeId(@PathVariable(name="employee_id") Integer employee_id){
         return  ResponseEntity.status(HttpStatus.OK).body(
             taskService.getTasksByEmployeeId(employee_id)
