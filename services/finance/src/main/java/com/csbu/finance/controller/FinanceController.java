@@ -3,6 +3,8 @@ package com.csbu.finance.controller;
 import com.csbu.finance.Service.BudgetService;
 import com.csbu.finance.Service.TransactionService;
 import com.csbu.finance.dto.BudgetDto;
+import com.csbu.finance.dto.BudgetIdAndCurrencyDto;
+import com.csbu.finance.dto.PageResponse;
 import com.csbu.finance.dto.TransactionDto;
 import com.csbu.finance.model.Budget;
 import com.csbu.finance.model.Transaction;
@@ -14,6 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,43 +40,55 @@ public class FinanceController {
     {
         Budget budget = budgetService.getBudgetById(request.getBudgetId());
         Transaction transaction = new Transaction();
+        transaction.setId(request.getId());
         transaction.setTransactionType(request.getTransactionType());
         transaction.setAmount(request.getAmount());
         transaction.setCurrency(request.getCurrency());
-        transaction.setStatus(request.getStatus());
+        transaction.setStatus(false);
         transaction.setDescription(request.getDescription());
         transaction.setBudget(budget);
         transactionService.createTransaction(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).body("Transaction added successfully");
     }
-
     @GetMapping("/transactions")
-    public ResponseEntity<List<TransactionDto>> getTransactions(){
-        return  ResponseEntity.status(HttpStatus.OK).body(transactionService.getTransactions());
-    }
-    @GetMapping("/transactions/search")
-    public ResponseEntity<List<TransactionDto>> searchTransactions(
+    public ResponseEntity<PageResponse<TransactionDto>> handleTransactions(
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(value = "currency", required = false) String currency,
-            @RequestParam(value = "status", required = false) String status) {
-        List<TransactionDto> transactions = transactionService.searchTransactions(searchQuery, startDate, endDate, currency, status);
-        return ResponseEntity.ok(transactions);
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") Integer size
+    ) {
+        if (searchQuery != null || startDate != null || endDate != null || currency != null || status != null) {
+            Page<TransactionDto> transactions = transactionService.searchTransactions(searchQuery, startDate, endDate, currency, status, page, size);
+            PageResponse<TransactionDto> pageResponse = new PageResponse<>(
+                    transactions.getNumber() + 1,
+                    transactions.getTotalPages(),
+                    transactions.getSize(),
+                    (int) transactions.getTotalElements(),
+                    transactions.getContent()
+            );
+            return ResponseEntity.ok(pageResponse);
+        } else {
+            return ResponseEntity.status(HttpStatus.OK).body(transactionService.getTransactions(page, size));
+        }
     }
 
+
+
     @DeleteMapping("/transactions/{id}")
-    public ResponseEntity<String> deleteTransactions(@PathVariable(name="id") Integer id){
+    public ResponseEntity<String> deleteTransactions(@PathVariable(name="id") String id){
         transactionService.deleteTransactions(id);
         return  ResponseEntity.status(HttpStatus.OK).body(String.format("Transaction %s has been deleted!",id));
     }
     @PutMapping("/transactions/{id}/status")
-    public ResponseEntity<String> updateTransactionsStatus(@PathVariable(name = "id") Integer id) {
+    public ResponseEntity<String> updateTransactionsStatus(@PathVariable(name = "id") String id) {
         try {
             Transaction transaction = transactionService.getTransactionById(id);
             Budget budget = transaction.getBudget();
 
-            Integer budgetId = budget.getId();
+            String budgetId = budget.getId();
             Integer budgetRemaining = budget.getRemainingAmount();
             Integer transactionAmount = transaction.getAmount();
 
@@ -99,31 +114,57 @@ public class FinanceController {
     @PostMapping("/budgets")
     public ResponseEntity<String> createBudget(@RequestBody @Valid AddBudgetRequest request)
     {
+        Budget existingBudget = budgetService.getBudgetById(request.getId());
+        if (existingBudget != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Budget already exists with id: " + request.getId());
+        }
+        
         Budget budget = new Budget();
+        budget.setId(request.getId());
         budget.setPeriodStart(request.getPeriodStart());
+        budget.setDescription(request.getDescription());
         budget.setPeriodEnd(request.getPeriodEnd());
         budget.setCurrency(request.getCurrency());
         budget.setApprovedAmount(request.getBudgetAmount());
         budget.setRemainingAmount(request.getBudgetAmount());
+
         budgetService.createBudget(budget);
         return ResponseEntity.status(HttpStatus.CREATED).body("Budget added successfully");
     }
 
     @GetMapping("/budgets")
-    public ResponseEntity<List<BudgetDto>> getBudgets(){
-        return  ResponseEntity.status(HttpStatus.OK).body(budgetService.getBudgets());
+    public ResponseEntity<PageResponse<BudgetDto>> getBudgets(
+            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") Integer size,
+            @RequestParam(value = "searchQuery", required = false) String searchQuery,
+            @RequestParam(value = "year", required = false) String year
+    ){
+        if (searchQuery != null || year != null) {
+            Page<BudgetDto> transactions = budgetService.searchBudgets(searchQuery, year , page, size);
+            PageResponse<BudgetDto> pageResponse = new PageResponse<>(
+                    transactions.getNumber() + 1,
+                    transactions.getTotalPages(),
+                    transactions.getSize(),
+                    (int) transactions.getTotalElements(),
+                    transactions.getContent()
+            );
+            return ResponseEntity.ok(pageResponse);
+        } else {
+            return  ResponseEntity.status(HttpStatus.OK).body(budgetService.getBudgets(page, size));
+        }
     }
 
-    @GetMapping("/budgets/search")
-    public ResponseEntity<List<BudgetDto>> searchBudgets(
-            @RequestParam(value = "searchQuery", required = false) String searchQuery,
-            @RequestParam(value = "year", required = false) String year) {
-        List<BudgetDto> budgets = budgetService.searchBudgets(searchQuery, year);
-        return ResponseEntity.ok(budgets);
+    @GetMapping("/budgets/id-currency")
+    public ResponseEntity<List<BudgetIdAndCurrencyDto>> getAllBudgetsIdAndCurrency(
+    ){
+        return  ResponseEntity.status(HttpStatus.OK).body(budgetService.getAllBudgetsIdAndCurrency());
     }
+
+
 
     @DeleteMapping("/budgets/{id}")
-    public ResponseEntity<String> deleteBudgets(@PathVariable(name="id") Integer id){
+    public ResponseEntity<String> deleteBudgets(@PathVariable(name="id") String id){
         budgetService.deleteBudget(id);
         return  ResponseEntity.status(HttpStatus.OK).body(String.format("Transaction %s has been deleted!",id));
     }

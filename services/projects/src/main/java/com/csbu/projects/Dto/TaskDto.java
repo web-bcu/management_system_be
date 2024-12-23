@@ -3,10 +3,10 @@ package com.csbu.projects.Dto;
 import java.util.Date;
 
 public record TaskDto(
-        Integer id,
+        String id,
         String taskName,
-        Integer managerId,
-        Integer employeeId,
+        String managerId,
+        String employeeId,
         Date deadline,
         boolean status
 ) {

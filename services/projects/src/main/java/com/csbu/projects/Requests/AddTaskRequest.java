@@ -12,24 +12,33 @@ import java.util.Date;
 @Setter
 public class AddTaskRequest {
     @NotNull
+    private String id;
+    @NotNull
     private String taskName;
     @NotNull
-    private Integer managerId;
+    private String managerId;
     @NotNull
-    private Integer employeeId;
+    private String employeeId;
     @NotNull
     private Date deadline;
 
+    public @NotNull String getId() {
+        return id;
+    }
+
+    public void setId(@NotNull String id) {
+        this.id = id;
+    }
 
     public @NotNull String getTaskName() {
         return taskName;
     }
 
-    public @NotNull Integer getManagerId() {
+    public @NotNull String getManagerId() {
         return managerId;
     }
 
-    public @NotNull Integer getEmployeeId() {
+    public @NotNull String getEmployeeId() {
         return employeeId;
     }
 

@@ -14,6 +14,10 @@ import java.util.List;
 @Setter
 public class AddBudgetRequest {
     @NotNull
+    private String id;
+    @NotNull
+    private String description;
+    @NotNull
     private LocalDate periodStart;
     @NotNull
     private LocalDate periodEnd;

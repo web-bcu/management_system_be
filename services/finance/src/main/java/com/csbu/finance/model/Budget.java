@@ -18,9 +18,8 @@ import java.util.Set;
 public class Budget {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
-    private Integer id;
+    private String id;
 
     //    private Account account; haven't had yet
 
@@ -35,6 +34,9 @@ public class Budget {
 
     @Column(name = "remaining_amount")
     private Integer remainingAmount;
+
+    @Column(name = "description")
+    private String description;
 
     @Column(name = "currency")
     private String currency;

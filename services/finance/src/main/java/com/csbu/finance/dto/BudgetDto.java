@@ -3,7 +3,8 @@ package com.csbu.finance.dto;
 import java.time.LocalDate;
 
 public record BudgetDto(
-        Integer id,
+        String id,
+        String description,
         LocalDate periodStart,
         LocalDate periodEnd,
         Integer approvedAmount,

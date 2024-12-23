@@ -1,11 +1,13 @@
 package com.csbu.finance.Service;
 
 import com.csbu.finance.Repository.TransactionRepository;
+import com.csbu.finance.dto.PageResponse;
 import com.csbu.finance.dto.TransactionDto;
 import com.csbu.finance.model.Transaction;
 import jakarta.transaction.Transactional;
 import org.hibernate.TransactionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,18 +25,28 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    public void createTransaction(Transaction transaction){
+    public void createTransaction(Transaction transaction) {
         try {
+            if (transactionRepository.findById(transaction.getId()).isPresent()) {
+                throw new TransactionException("Transaction already exists with id: " + transaction.getId());
+            }
             transactionRepository.save(transaction);
+        } catch (TransactionException e) {
+            throw e;
         } catch (Exception e) {
             throw new TransactionException("Error saving transaction", e);
         }
     }
 
-    public List<TransactionDto> getTransactions(){
+
+    public PageResponse<TransactionDto> getTransactions(Integer page, Integer size){
         try {
-            return transactionRepository.findAll().
-                    stream()
+            Sort sort = Sort.by("transactionDate").descending();
+            Pageable pageable = PageRequest.of(page-1, size, sort);
+            Page<Transaction> transactionsPage = transactionRepository.findAll(pageable);
+
+            List<TransactionDto> transactionDtos = transactionsPage.getContent()
+                    .stream()
                     .map(transaction -> new TransactionDto(
                             transaction.getId(),
                             transaction.getTransactionType(),
@@ -42,32 +54,50 @@ public class TransactionService {
                             transaction.getCurrency(),
                             transaction.getStatus(),
                             transaction.getTransactionDate(),
-                            transaction.getDescription()
-                            ,transaction.getBudget().getId()
-                    )).collect(Collectors.toList());
+                            transaction.getDescription(),
+                            transaction.getBudget().getId()
+                    ))
+                    .collect(Collectors.toList());
+
+            return new PageResponse<TransactionDto>(
+                    transactionsPage.getNumber() + 1, // currentPage (1-based index)
+                    transactionsPage.getTotalPages(), // totalPages
+                    transactionsPage.getSize(), // pageSize
+                    (int) transactionsPage.getTotalElements(), // totalElement
+                    transactionDtos // data
+            );
+
         } catch (Exception e) {
             throw new TransactionException("Error getting transaction", e);
         }
     }
 
-    public  List<TransactionDto>  searchTransactions(
+    public  Page<TransactionDto>   searchTransactions(
             String searchQuery,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             String currency,
-            String status
+            String status,
+            int page,
+            int size
     ){
         try {
-            return transactionRepository.findAll().stream()
-                    .filter(transaction -> searchQuery == null ||
-                            transaction.getDescription().toLowerCase().contains(searchQuery.toLowerCase()) ||
-                            transaction.getTransactionType().toLowerCase().contains(searchQuery.toLowerCase()) ||
-                            transaction.getId().toString().equals(searchQuery)
+            Pageable pageable = PageRequest.of(page-1, size);
+
+            Page<Transaction> transactionPage = transactionRepository.findAll(pageable);
+
+            // Apply filtering logic to the transactions list
+            List<TransactionDto> filteredTransactions = transactionPage.stream()
+                    .filter(transaction ->
+                            (searchQuery == null ||
+                                    transaction.getDescription().toLowerCase().contains(searchQuery.toLowerCase()) ||
+                                    transaction.getTransactionType().toLowerCase().contains(searchQuery.toLowerCase()) ||
+                                    transaction.getId().toString().contains(searchQuery))
+                                    && (startDate == null || !transaction.getTransactionDate().toLocalDate().isBefore(startDate))
+                                    && (endDate == null || !transaction.getTransactionDate().toLocalDate().isAfter(endDate))
+                                    && (currency == null || transaction.getCurrency().equals(currency))
+                                    && (status == null || transaction.getStatus().equals(status))
                     )
-                    .filter(transaction -> startDate == null || !transaction.getTransactionDate().toLocalDate().isBefore(startDate))
-                    .filter(transaction -> endDate == null || !transaction.getTransactionDate().toLocalDate().isAfter(endDate))
-                    .filter(transaction -> currency == null || transaction.getCurrency().equals(currency))
-                    .filter(transaction -> status == null || transaction.getStatus().equals(status))
                     .map(transaction -> new TransactionDto(
                             transaction.getId(),
                             transaction.getTransactionType(),
@@ -75,14 +105,17 @@ public class TransactionService {
                             transaction.getCurrency(),
                             transaction.getStatus(),
                             transaction.getTransactionDate(),
-                            transaction.getDescription()
-                            ,transaction.getBudget().getId()
-                    )).collect(Collectors.toList());
+                            transaction.getDescription(),
+                            transaction.getBudget().getId()
+                    ))
+                    .collect(Collectors.toList());
+            return new PageImpl<>(filteredTransactions, pageable, transactionPage.getTotalElements());
+
         }catch (Exception e){
             throw new TransactionException("Error getting transaction", e);
         }
     }
-    public void deleteTransactions(Integer id){
+    public void deleteTransactions(String id){
         try {
             transactionRepository.deleteById(id);
         } catch (Exception e) {
@@ -90,14 +123,14 @@ public class TransactionService {
         }
     }
 
-    public void updateTransactionsStatus(Integer id){
+    public void updateTransactionsStatus(String id){
         try {
             transactionRepository.updateTransactionStatus(id);
         } catch (Exception e) {
             throw new TransactionException("Error updating transaction", e);
         }
     }
-    public Transaction getTransactionById(Integer id){
+    public Transaction getTransactionById(String id){
         try {
             return transactionRepository.findById(id)
                     .orElseThrow(() -> new TransactionException("Transaction not found with id: " + id));

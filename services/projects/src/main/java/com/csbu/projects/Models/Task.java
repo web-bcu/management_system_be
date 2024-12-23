@@ -14,8 +14,7 @@ import java.util.Date;
 @Table(name = "Tasks")
 public class Task {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    private String id;
 
     @Column(name="task_name", nullable = false)
     private String taskName;
@@ -23,11 +22,11 @@ public class Task {
 
 //    private Employee manager;
     @Column(name="manager_id", nullable = false)
-    private Integer managerId;
+    private String managerId;
 
 //    private Employee employee;
     @Column(name="employee_id", nullable = false)
-    private Integer employeeId;
+    private String employeeId;
 
     @Temporal(TemporalType.DATE)
     @Column(name = "deadline" ,nullable = false)
@@ -37,11 +36,11 @@ public class Task {
     private boolean status;
 
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -53,19 +52,19 @@ public class Task {
         this.taskName = taskName;
     }
 
-    public Integer getManagerId() {
+    public String getManagerId() {
         return managerId;
     }
 
-    public void setManagerId(Integer managerId) {
+    public void setManagerId(String managerId) {
         this.managerId = managerId;
     }
 
-    public Integer getEmployeeId() {
+    public String getEmployeeId() {
         return employeeId;
     }
 
-    public void setEmployeeId(Integer employeeId) {
+    public void setEmployeeId(String employeeId) {
         this.employeeId = employeeId;
     }
 

@@ -9,9 +9,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface BudgetRepository extends JpaRepository<Budget, Integer> {
+public interface BudgetRepository extends JpaRepository<Budget, String> {
     @Modifying
     @Transactional
     @Query("UPDATE Budget a SET a.remainingAmount = :amount WHERE a.id = :id")
-    void updateBudgetAmount(@Param("id") Integer id, @Param("amount") Integer amount);
+    void updateBudgetAmount(@Param("id") String id, @Param("amount") Integer amount);
 }

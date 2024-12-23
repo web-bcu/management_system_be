@@ -14,9 +14,8 @@ import java.time.LocalDateTime;
 @Table(name = "Transactions")
 public class Transaction {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
-    private Integer id;
+    private String id;
 
 //    private Account account; haven't had yet
 

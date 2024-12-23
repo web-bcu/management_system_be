@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 @Setter
 public class AddTransactionRequest {
     @NotNull
+    private String id;
+    @NotNull
     private String transactionType;
 
     @NotNull
@@ -22,9 +24,7 @@ public class AddTransactionRequest {
     private String currency;
 
     @NotNull
-    private Boolean status;
-    @NotNull
     private String description;
     @NotNull
-    private  Integer budgetId;
+    private  String budgetId;
 }
