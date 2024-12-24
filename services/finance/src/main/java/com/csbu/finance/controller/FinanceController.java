@@ -21,9 +21,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/finance")
@@ -47,6 +50,7 @@ public class FinanceController {
         transaction.setStatus(false);
         transaction.setDescription(request.getDescription());
         transaction.setBudget(budget);
+        transaction.setImage(null);
         transactionService.createTransaction(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).body("Transaction added successfully");
     }
@@ -82,8 +86,18 @@ public class FinanceController {
         transactionService.deleteTransactions(id);
         return  ResponseEntity.status(HttpStatus.OK).body(String.format("Transaction %s has been deleted!",id));
     }
+
+    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/transactions/{id}/status")
-    public ResponseEntity<String> updateTransactionsStatus(@PathVariable(name = "id") String id) {
+    public ResponseEntity<String> updateTransactionsStatus(@PathVariable(name = "id") String id,@RequestParam("file") MultipartFile file) throws IOException{
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File is empty!");
+        }
+        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
+            return ResponseEntity.badRequest().body("Invalid file type! Only image files are allowed.");
+        }
+        String downloadUrl = transactionService.uploadImage(file, id);
+        transactionService.updateTransactionsImg(id, downloadUrl);
         try {
             Transaction transaction = transactionService.getTransactionById(id);
             Budget budget = transaction.getBudget();

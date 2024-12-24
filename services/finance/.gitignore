@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+
+# Add Firebase configuration to .gitignore
+/src/main/java/com/csbu/finance/config/spring-boot-firebase.json
+
 ### STS ###
 .apt_generated
 .classpath

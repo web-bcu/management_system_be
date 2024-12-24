@@ -12,6 +12,7 @@ public record TransactionDto(
         Boolean status,
         LocalDateTime transactionDate,
         String description,
-        String budget_id
+        String budget_id,
+        String image
 ) {
 }

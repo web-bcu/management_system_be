@@ -15,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,7 +26,12 @@ import java.util.stream.Collectors;
 public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
+    @Autowired
+    private FirebaseService firebaseService;
 
+    public String uploadImage(MultipartFile img, String fileName) throws IOException {
+        return firebaseService.upload(img, fileName);
+    }
     public void createTransaction(Transaction transaction) {
         try {
             if (transactionRepository.findById(transaction.getId()).isPresent()) {
@@ -55,7 +62,8 @@ public class TransactionService {
                             transaction.getStatus(),
                             transaction.getTransactionDate(),
                             transaction.getDescription(),
-                            transaction.getBudget().getId()
+                            transaction.getBudget().getId(),
+                            transaction.getImage()
                     ))
                     .collect(Collectors.toList());
 
@@ -106,7 +114,8 @@ public class TransactionService {
                             transaction.getStatus(),
                             transaction.getTransactionDate(),
                             transaction.getDescription(),
-                            transaction.getBudget().getId()
+                            transaction.getBudget().getId(),
+                            transaction.getImage()
                     ))
                     .collect(Collectors.toList());
             return new PageImpl<>(filteredTransactions, pageable, transactionPage.getTotalElements());
@@ -126,6 +135,14 @@ public class TransactionService {
     public void updateTransactionsStatus(String id){
         try {
             transactionRepository.updateTransactionStatus(id);
+        } catch (Exception e) {
+            throw new TransactionException("Error updating transaction", e);
+        }
+    }
+
+    public void updateTransactionsImg(String id, String url){
+        try {
+            transactionRepository.updateTransactionImg(id, url);
         } catch (Exception e) {
             throw new TransactionException("Error updating transaction", e);
         }

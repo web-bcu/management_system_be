@@ -19,4 +19,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
     @Query("UPDATE Transaction a SET a.status = true WHERE a.id = :id")
     void updateTransactionStatus(@Param("id") String id);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE Transaction a SET a.image = :url WHERE a.id = :id")
+    void updateTransactionImg(@Param("id") String id, @Param("url") String url);
 }

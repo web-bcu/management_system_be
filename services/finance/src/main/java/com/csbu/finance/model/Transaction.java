@@ -34,6 +34,9 @@ public class Transaction {
     @Column(name = "status")
     private Boolean status;
 
+    @Column(name = "image")
+    private String image;
+
     @Column(name = "transaction_date")
     private LocalDateTime transactionDate;
 
